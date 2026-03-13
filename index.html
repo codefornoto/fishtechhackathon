@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FISH×TECH HACKATHON</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Noto+Serif+JP:wght@700;900&family=Montserrat:wght@900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* 背景のグラデーションカラー（黒〜深海） */
+            --ocean-dark: #000B18;
+            --ocean-mid: #002244;
+            --ocean-light: #004477;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: linear-gradient(to bottom, var(--ocean-dark) 0%, var(--ocean-mid) 60%, var(--ocean-light) 100%);
+            background-attachment: fixed; /* スクロールしても背景を固定 */
+            color: white;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        .font-eng {
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        /* -------------------------
+           海の背景とエフェクト 
+           ------------------------- */
+        .ocean-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        /* 光の波紋 */
+        .caustics {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 200%;
+            background: transparent;
+            background-image: radial-gradient(rgba(255,255,255,0.05) 2px, transparent 2px);
+            background-size: 60px 60px;
+            opacity: 0.5;
+            animation: wave 25s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes wave {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-50%) rotate(3deg); }
+        }
+
+        /* 泡のエフェクト */
+        .bubble {
+            position: absolute;
+            bottom: -100px;
+            background-color: rgba(255, 255, 255, 1);
+            border-radius: 50%;
+            animation: rise infinite linear;
+            box-shadow: inset -2px -2px 10px rgba(0, 0, 0, 0.2), 0 0 5px rgba(255, 255, 255, 0.3);
+        }
+
+        @keyframes rise {
+            0% { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
+            10% { opacity: 1; }
+            50% { transform: translateY(-50vh) translateX(30px) scale(1.1); }
+            90% { opacity: 1; }
+            100% { transform: translateY(-110vh) translateX(-20px) scale(1.2); opacity: 0; }
+        }
+
+        /* 小さな海の生き物たち */
+        .sea-creature {
+            position: absolute;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+        }
+
+        .swim-left { animation: swimL linear infinite; right: -50px; }
+        .swim-right { animation: swimR linear infinite; left: -50px; transform: scaleX(-1); }
+
+        @keyframes swimL {
+            0% { right: -50px; transform: translateY(0px); }
+            25% { transform: translateY(15px); }
+            50% { transform: translateY(0px); }
+            75% { transform: translateY(-15px); }
+            100% { right: 110vw; transform: translateY(0px); }
+        }
+
+        @keyframes swimR {
+            0% { left: -50px; transform: scaleX(-1) translateY(0px); }
+            25% { transform: scaleX(-1) translateY(-15px); }
+            50% { transform: scaleX(-1) translateY(0px); }
+            75% { transform: scaleX(-1) translateY(15px); }
+            100% { left: 110vw; transform: scaleX(-1) translateY(0px); }
+        }
+
+        /* -------------------------
+           コンテンツスタイル
+           ------------------------- */
+        .text-glow {
+            text-shadow: 0 0 10px rgba(0, 153, 255, 0.8), 0 0 30px rgba(0, 51, 102, 0.9);
+        }
+
+        .card-glass {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        /* モーダル用iframeラッパー */
+        .iframe-container {
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 120px);
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fff;
+        }
+        
+        .iframe-container iframe {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 背景装飾 -->
+    <div class="ocean-bg">
+        <div class="caustics"></div>
+        <div id="bubbles-container"></div>
+        <div id="sea-creatures-container"></div>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <main class="relative z-10 container mx-auto px-4 py-16 max-w-5xl">
+        <!-- ヘッダー -->
+        <header class="text-center mb-16">
+            <h1 class="text-5xl md:text-7xl font-black text-white tracking-widest font-eng text-glow">
+                FISH<span class="text-cyan-300">×</span>TECH
+            </h1>
+            <p class="text-cyan-100 text-xl md:text-2xl mt-4 font-bold tracking-widest drop-shadow-md">
+                HACKATHON
+            </p>
+        </header>
+
+        <!-- タイムライン / リストコンテナ -->
+        <div class="space-y-16">
+            
+            <!-- プログラムセクション -->
+            <section>
+                <div class="flex items-center gap-3 mb-8 border-b-2 border-cyan-500 pb-2">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white tracking-wider">プログラム</h2>
+                </div>
+                <!-- JSでコンテンツを流し込む場所 -->
+                <div id="program-list" class="space-y-6"></div>
+            </section>
+
+            <!-- 参加チームセクション -->
+            <section>
+                <div class="flex items-center gap-3 mb-8 border-b-2 border-yellow-500 pb-2">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white tracking-wider">参加チーム</h2>
+                </div>
+                <!-- グリッドレイアウトでチームを並べる -->
+                <div id="team-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- PDF表示用モーダル -->
+    <div id="pdf-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden transition-opacity duration-300 opacity-0">
+        <div class="bg-gray-900 w-full max-w-5xl p-4 md:p-6 rounded-xl shadow-2xl mx-4 transform transition-transform duration-300 scale-95" id="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="modal-title" class="text-xl md:text-2xl font-bold text-white truncate pr-4">Document</h2>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-white transition-colors p-2 rounded-full hover:bg-gray-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="iframe-container">
+                <div id="iframe-wrapper"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * 🐟 データ設定エリア
+         * Google DriveのPDFを表示する場合は、URLを必ず /preview で終わる形式にしてください。
+         */
+        
+        // 1. プログラムデータ (3枠)
+        const PROGRAM_DATA = [
+            { id: 'prog1', type: 'program', label: 'プログラム', title: 'Pitch! セッション', image: './images/pitch.png', pdfUrl: 'https://drive.google.com/file/d/1Bf2R-v2Dk0g5e3q2t_zM_x4P7x4P7x4P/preview' },
+            { id: 'prog2', type: 'program', label: 'プログラム', title: 'Touch! セッション', image: './images/touch.png', pdfUrl: 'https://drive.google.com/file/d/1Bf2R-v2Dk0g5e3q2t_zM_x4P7x4P7x4P/preview' },
+            { id: 'prog3', type: 'program', label: 'プログラム', title: 'Judge! セッション', image: './images/judge.png', pdfUrl: 'https://drive.google.com/file/d/1Bf2R-v2Dk0g5e3q2t_zM_x4P7x4P7x4P/preview' },
+        ];
+
+        // 2. チームデータ (提供いただいた23チーム分)
+        const TEAM_DATA = [
+            { id: 'team1', type: 'team', label: 'Team 01: 41h0(シホ)', title: 'FisBuzz', image: './images/1.png', pdfUrl: 'https://drive.google.com/file/d/11BEGQ2zwdsX3J2uUjaYVTLdIauA7Qweg/preview' },
+            { id: 'team2', type: 'team', label: 'Team 02: WildCard', title: 'うみべのまち', image: './images/2.png', pdfUrl: 'https://drive.google.com/file/d/1HdHtog5m6cU0s-Psnj9PBFombsaXxDDp/preview' },
+            { id: 'team3', type: 'team', label: 'Team 03: Dチーム', title: 'リモート勝手丼', image: './images/3.png', pdfUrl: 'https://drive.google.com/file/d/1whvdSrY4jvcqxQgVHWBRMuZ1ipFMNpeB/preview' },
+            { id: 'team4', type: 'team', label: 'Team 04: TBD', title: '飲食店検索サイト AGISAI', image: './images/4.png', pdfUrl: 'https://drive.google.com/file/d/1t5IsPerl_ZuG_PJaasBbwyLrnDbDcy1N/preview' },
+            { id: 'team5', type: 'team', label: 'Team 05: チーム金工大', title: '石川推し魚水族館', image: './images/5.png', pdfUrl: 'https://drive.google.com/file/d/1NZQJ7GY9AkC-IV7mZZAqS5YRwEaYJdro/preview' },
+            { id: 'team6', type: 'team', label: 'Team 06: Team Null', title: 'ふるさとピンチ', image: './images/6.png', pdfUrl: 'https://drive.google.com/file/d/1hAPsDpR2rr6znl2dwyjjgQCLkSI0QAI8/preview' },
+            { id: 'team7', type: 'team', label: 'Team 07: チームオーシャン', title: '漁情法', image: './images/7.png', pdfUrl: 'https://drive.google.com/file/d/1wBEWKRe6oK9e6GyKFW-O7pE-EXRYH2pF/preview' },
+            { id: 'team8', type: 'team', label: 'Team 08: CRAB倶楽部', title: '輝に会えるのか', image: './images/8.png', pdfUrl: 'https://drive.google.com/file/d/1k9e2-rxWmgnmrZAzRx9HyokJBTCCvOfu/preview' },
+            { id: 'team9', type: 'team', label: 'Team 09: Team_Sousei', title: 'ウオガイド・カナザワ', image: './images/9.png', pdfUrl: 'https://drive.google.com/file/d/1OffP5F1ximC3dZMy0rzGiKVUXNZJl3hI/preview' },
+            { id: 'team10', type: 'team', label: 'Team 10: IshiWave', title: 'まいもんハンター', image: './images/10.png', pdfUrl: 'https://drive.google.com/file/d/1tesZSfDx9gm1XZ-u2HLItuK2eBFTYHZh/preview' },
+            { id: 'team11', type: 'team', label: 'Team 11: チームなかや', title: '超AIコンシェルジュ!', image: './images/11.png', pdfUrl: 'https://drive.google.com/file/d/1sGnA3lkDvAyjxSBCFk_7DoJMjPEW60wt/preview' },
+            { id: 'team12', type: 'team', label: 'Team 12: いわしくるくる', title: 'ぎょぎょろぐ', image: './images/12.png', pdfUrl: 'https://drive.google.com/file/d/1Oqtb_hSZ9O0oD4g9icZv148GaboAW2oC/preview' },
+            { id: 'team13', type: 'team', label: 'Team 13: Chasoso', title: 'Nihonkai Tsu', image: './images/13.png', pdfUrl: 'https://drive.google.com/file/d/19MMchxu1lqgUKyWeMRlmOxtp6b-U2nci/preview' },
+            { id: 'team14', type: 'team', label: 'Team 14: データドリブンLab', title: 'TORETATE', image: './images/14.png', pdfUrl: 'https://drive.google.com/file/d/1IVYf25Y6rdGMS9lY8wKb3kRK4d65Es2L/preview' },
+            { id: 'team15', type: 'team', label: 'Team 15: AirData', title: 'SuiSanData', image: './images/15.png', pdfUrl: 'https://drive.google.com/file/d/1iN8SuA0-0oHbXMLY4BTfFusVxNYhW0NN/preview' },
+            { id: 'team16', type: 'team', label: 'Team 16: （仮）', title: 'Ocean Copilot', image: './images/16.png', pdfUrl: 'https://drive.google.com/file/d/1vDYvfem8ahxR3hFLIBiT6BuZIlz6Fj6A/preview' },
+            { id: 'team17', type: 'team', label: 'Team 17: 海洋のオーシャン', title: '金沢魚通ガイド', image: './images/17.png', pdfUrl: 'https://drive.google.com/file/d/14Z0qPuwB4Z7dnugV_8P-QiF3iDrJOnhm/preview' },
+            { id: 'team18', type: 'team', label: 'Team 18: naminamina', title: '（アプリ名未定）', image: './images/18.png', pdfUrl: '' },
+            { id: 'team19', type: 'team', label: 'Team 19: UoNow うおセブン', title: 'UoNow うおセブン', image: './images/19.png', pdfUrl: 'https://drive.google.com/file/d/1dnSFrpREV_7jaPX2uOw4Q4BX_EGNWrp_/preview' },
+            { id: 'team20', type: 'team', label: 'Team 20: Shall we hack', title: '漁獲量一発で確認アプリ（仮）', image: './images/20.png', pdfUrl: 'https://drive.google.com/file/d/1fGvK5NiTKgnzsKWU10Z29YsDlRqn6D0P/preview' },
+            { id: 'team21', type: 'team', label: 'Team 21: 寒いぜ石川', title: '漁業会社シミュレーションゲーム', image: './images/21.png', pdfUrl: 'https://drive.google.com/file/d/1xedWO0p1MY9tCTqVW072Eklbdw1vWS74/preview' },
+            { id: 'team22', type: 'team', label: 'Team 22: 漁師コンピューティング', title: '漁師コンピューター', image: './images/22.png', pdfUrl: 'https://drive.google.com/file/d/1svSAPF08O_6CaFeqIum8c6Sls_gjk0cK/preview' },
+            { id: 'team23', type: 'team', label: 'Team 23: 能登LSAデジタルラボ', title: 'UMINO WA', image: './images/23.png', pdfUrl: 'https://drive.google.com/file/d/1aep8FIY3DlzjhG-CnOXEAbLSdkas8ce9/preview' }
+        ];
+
+        /**
+         * 🌊 背景アニメーションの初期化
+         */
+        function initBackground() {
+            // 泡の生成
+            const bubblesContainer = document.getElementById('bubbles-container');
+            const bubbleCount = 50; // 泡の数
+            
+            for (let i = 0; i < bubbleCount; i++) {
+                const bubble = document.createElement('div');
+                bubble.classList.add('bubble');
+                const size = Math.random() * 40 + 5; // 大きさをバラバラに
+                const duration = 15 - (size / 50) * 8 + Math.random() * 10; // 大きいほど少し速い
+                const opacity = Math.random() * 0.3 + 0.1;
+                const left = Math.random() * 100;
+                const delay = Math.random() * 15;
+
+                bubble.style.width = `${size}px`;
+                bubble.style.height = `${size}px`;
+                bubble.style.left = `${left}%`;
+                bubble.style.opacity = opacity;
+                bubble.style.animationDuration = `${duration}s`;
+                bubble.style.animationDelay = `-${delay}s`;
+
+                bubblesContainer.appendChild(bubble);
+            }
+
+            // 生き物の生成 (小さめに設定)
+            const creaturesContainer = document.getElementById('sea-creatures-container');
+            const creatures = ['🐟', '🐠', '🐡', '🐙', '🦑', '🦀', '🦐', '🐢', '🦈', '🐬'];
+            
+            for (let i = 0; i < 12; i++) {
+                const creature = document.createElement('div');
+                creature.className = 'sea-creature';
+                creature.innerText = creatures[Math.floor(Math.random() * creatures.length)];
+                creature.style.top = `${10 + Math.random() * 80}%`;
+                creature.style.animationDuration = `${25 + Math.random() * 20}s`;
+                creature.style.animationDelay = `${Math.random() * -30}s`; 
+                
+                if (Math.random() > 0.5) {
+                    creature.classList.add('swim-right');
+                } else {
+                    creature.classList.add('swim-left');
+                }
+                
+                // サイズを小さめに設定 (0.8rem 〜 1.5rem 程度)
+                const scale = 0.5 + Math.random() * 0.6;
+                creature.style.fontSize = `${scale * 1.5}rem`;
+                // 奥の方にいるように透過
+                creature.style.opacity = 0.15 + Math.random() * 0.3;
+                
+                creaturesContainer.appendChild(creature);
+            }
+        }
+
+
+        /**
+         * 📝 カードのレンダリング
+         */
+        function renderContent() {
+            const programContainer = document.getElementById('program-list');
+            const teamContainer = document.getElementById('team-list');
+
+            // カード生成用の共通関数（横長レイアウト）
+            const createCardHTML = (data) => {
+                const isProgram = data.type === 'program';
+                const badgeColor = isProgram ? 'bg-cyan-500' : 'bg-yellow-500';
+                
+                // URLの有無でクリック挙動とホバーエフェクトを切り替え
+                const onClickAttr = data.pdfUrl ? `onclick="openModal('${data.title}', '${data.pdfUrl}')"` : '';
+                const cursorClass = data.pdfUrl ? 'cursor-pointer hover:shadow-[0_10px_30px_rgba(0,153,255,0.2)] hover:border-[rgba(255,255,255,0.3)] hover:-translate-y-1 hover:bg-[rgba(255,255,255,0.15)]' : 'cursor-default opacity-70';
+
+                return `
+                    <div class="card-glass rounded-2xl p-4 flex flex-col sm:flex-row gap-5 transition-all duration-300 ${cursorClass}" ${onClickAttr}>
+                        <div class="w-full sm:w-48 h-36 flex-shrink-0">
+                            <img src="${data.image}" alt="${data.title}" class="w-full h-full object-cover rounded-xl shadow-md bg-white/10">
+                        </div>
+                        <div class="flex flex-col justify-center flex-grow py-2">
+                            <span class="inline-block px-3 py-1 rounded-full text-xs font-bold text-white ${badgeColor} w-max mb-3 tracking-wider">
+                                ${data.label}
+                            </span>
+                            <h3 class="text-2xl font-bold text-white mb-2">${data.title}</h3>
+                        </div>
+                    </div>
+                `;
+            };
+
+            // HTMLに挿入
+            programContainer.innerHTML = PROGRAM_DATA.map(createCardHTML).join('');
+            teamContainer.innerHTML = TEAM_DATA.map(createCardHTML).join('');
+        }
+
+
+        /**
+         * 📄 モーダル制御ロジック
+         */
+        const modal = document.getElementById('pdf-modal');
+        const modalContent = document.getElementById('modal-content');
+        const modalTitle = document.getElementById('modal-title');
+        const iframeWrapper = document.getElementById('iframe-wrapper');
+
+        function openModal(title, pdfUrl) {
+            modalTitle.innerText = title;
+            iframeWrapper.innerHTML = `<iframe src="${pdfUrl}" allow="autoplay"></iframe>`;
+            
+            modal.classList.remove('hidden');
+            // Tailwindのtransitionを効かせるため少し遅延
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalContent.classList.remove('scale-95');
+                modalContent.classList.add('scale-100');
+            }, 10);
+            
+            // 背景のスクロールを止める
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            modal.classList.add('opacity-0');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                iframeWrapper.innerHTML = ''; 
+                document.body.style.overflow = ''; // スクロール再開
+            }, 300);
+        }
+
+        // モーダルの背景クリックで閉じる
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+
+        /**
+         * 🚀 初期化
+         */
+        window.onload = () => {
+            initBackground();
+            renderContent();
+        };
+
+    </script>
+</body>
+</html>
