@@ -140,6 +140,22 @@
             top: 0; left: 0; width: 100%; height: 100%;
             border: none;
         }
+
+        /* 起動時の魚群エフェクト用 */
+        .splash-fish {
+            position: absolute;
+            opacity: 0;
+            animation: swarmSwim linear forwards;
+            filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
+            pointer-events: none;
+        }
+
+        @keyframes swarmSwim {
+            0% { transform: translateX(var(--startX)) translateY(var(--startY)) scaleX(var(--dir)); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateX(var(--endX)) translateY(var(--endY)) scaleX(var(--dir)); opacity: 0; }
+        }
     </style>
 </head>
 <body>
@@ -152,10 +168,14 @@
     </div>
 
     <!-- スプラッシュスクリーン -->
-    <div id="splash-screen" class="fixed inset-0 z-40 flex flex-col items-center justify-center bg-transparent cursor-pointer" onclick="startApp()">
-        <!-- ユーザーの記載に合わせてパスを ./images/fishtech.png としています -->
-        <img src="./images/opendatalogo.png" alt="FISH×TECH" class="max-w-[80%] md:max-w-md opacity-0 transition-opacity duration-2000 drop-shadow-2xl" id="splash-logo" onerror="this.style.display='none'">
-        <p id="splash-text" class="text-white/60 tracking-widest mt-12 animate-pulse opacity-0 transition-opacity duration-1000 font-bold text-lg drop-shadow-md">
+    <div id="splash-screen" class="fixed inset-0 z-40 flex flex-col items-center justify-center bg-transparent cursor-pointer transition-opacity duration-1000" onclick="startApp()">
+        <!-- 大量の魚のコンテナ -->
+        <div id="splash-fishes-container" class="absolute inset-0 overflow-hidden pointer-events-none z-40"></div>
+        
+        <!-- ロゴとテキスト -->
+        <!-- duration-[4000ms] で4秒かけてゆっくりフェードイン -->
+        <img src="./images/fishtech.png" alt="FISH×TECH" class="max-w-[80%] md:max-w-md opacity-0 transition-opacity duration-[4000ms] drop-shadow-2xl z-50 relative" id="splash-logo" onerror="this.style.display='none'">
+        <p id="splash-text" class="text-white/60 tracking-widest mt-12 animate-pulse opacity-0 transition-opacity duration-1000 font-bold text-lg drop-shadow-md z-50 relative">
             画面をタップしてスタート
         </p>
     </div>
@@ -313,6 +333,53 @@
             }
         }
 
+        /**
+         * 🐟 起動時のインパクト：総合優勝発表風の大群エフェクト
+         */
+        function initSplashFishes() {
+            const container = document.getElementById('splash-fishes-container');
+            container.innerHTML = '';
+            
+            const fishTypes = ['🐟', '🐠', '🦈', '🐋', '🦑', '🐡', '🐟', '🎉', '❤', '🐚'];
+            const count = 120; // 画面を覆う魚の数
+            
+            for (let i = 0; i < count; i++) {
+                const fish = document.createElement('div');
+                fish.className = 'splash-fish';
+                fish.innerText = fishTypes[Math.floor(Math.random() * fishTypes.length)];
+                
+                const isRightToLeft = Math.random() > 0.5;
+                const dir = isRightToLeft ? -1 : 1;
+                
+                const startX = isRightToLeft ? '120vw' : '-20vw';
+                const endX = isRightToLeft ? '-20vw' : '120vw';
+                const startY = `${Math.random() * 100}vh`;
+                const endY = `calc(${startY} + ${Math.random() * 60 - 30}vh)`;
+                
+                const duration = Math.random() * 3.5 + 2.5; 
+                const delay = Math.random() * 4.0; 
+                const fontSize = Math.random() * 6 + 3; 
+
+                fish.style.setProperty('--startX', startX);
+                fish.style.setProperty('--endX', endX);
+                fish.style.setProperty('--startY', startY);
+                fish.style.setProperty('--endY', endY);
+                fish.style.setProperty('--dir', dir);
+                
+                fish.style.fontSize = `${fontSize}rem`;
+                fish.style.animationDuration = `${duration}s`;
+                fish.style.animationDelay = `${delay}s`;
+                
+                fish.style.zIndex = fontSize < 5 ? 40 : 60;
+
+                container.appendChild(fish);
+            }
+            
+            // アニメーション終了後に要素をクリア
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 10000);
+        }
 
         /**
          * 📝 カードのレンダリング
@@ -358,13 +425,10 @@
          * 🚀 スプラッシュ画面制御
          */
         function startApp() {
-            const splashText = document.getElementById('splash-text');
-            // 7秒経過してテキストが表示されるまではタップを無効化
-            if (splashText.classList.contains('opacity-0')) return;
-
             const splashScreen = document.getElementById('splash-screen');
             const mainContent = document.getElementById('main-content');
             
+            // タップされたらフェードアウト開始
             splashScreen.classList.add('opacity-0');
             
             setTimeout(() => {
@@ -372,7 +436,7 @@
                 mainContent.classList.remove('opacity-0');
                 mainContent.classList.remove('pointer-events-none');
                 document.body.style.overflow = ''; // スクロール再開
-            }, 1000);
+            }, 1000); // 1秒かけてフェードアウト
         }
 
 
@@ -426,16 +490,17 @@
             
             initBackground();
             renderContent();
+            initSplashFishes(); // 大群が横切るエフェクトを準備
 
-            // スプラッシュ画面のアニメーション開始
+            // ロゴをゆっくりフェードイン (duration-[4000ms])
             setTimeout(() => {
                 document.getElementById('splash-logo').classList.remove('opacity-0');
-            }, 500);
+            }, 300);
 
-            // 7秒後にタップ指示テキストを表示
+            // ロゴが完全に表示される頃に、タップ指示テキストを表示
             setTimeout(() => {
                 document.getElementById('splash-text').classList.remove('opacity-0');
-            }, 7000);
+            }, 3500);
         };
 
     </script>
