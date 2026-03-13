@@ -151,40 +151,59 @@
         <div id="sea-creatures-container"></div>
     </div>
 
-    <!-- メインコンテンツ -->
-    <main class="relative z-10 container mx-auto px-4 py-16 max-w-5xl">
-        <!-- ヘッダー -->
-        <header class="text-center mb-16">
-            <h1 class="text-5xl md:text-7xl font-black text-white tracking-widest font-eng text-glow">
-                FISH<span class="text-cyan-300">×</span>TECH
-            </h1>
-            <p class="text-cyan-100 text-xl md:text-2xl mt-4 font-bold tracking-widest drop-shadow-md">
-                HACKATHON
-            </p>
-        </header>
+    <!-- スプラッシュスクリーン -->
+    <div id="splash-screen" class="fixed inset-0 z-40 flex flex-col items-center justify-center bg-transparent cursor-pointer" onclick="startApp()">
+        <!-- ユーザーの記載に合わせてパスを ./images/fishtech.png としています -->
+        <img src="./images/fishtech.png" alt="FISH×TECH" class="max-w-[80%] md:max-w-md opacity-0 transition-opacity duration-2000 drop-shadow-2xl" id="splash-logo" onerror="this.style.display='none'">
+        <p id="splash-text" class="text-white/60 tracking-widest mt-12 animate-pulse opacity-0 transition-opacity duration-1000 font-bold text-lg drop-shadow-md">
+            画面をタップしてスタート
+        </p>
+    </div>
 
-        <!-- タイムライン / リストコンテナ -->
-        <div class="space-y-16">
-            
-            <!-- プログラムセクション -->
-            <section>
-                <div class="flex items-center gap-3 mb-8 border-b-2 border-cyan-500 pb-2">
-                    <h2 class="text-3xl md:text-4xl font-bold text-white tracking-wider">プログラム</h2>
-                </div>
-                <!-- JSでコンテンツを流し込む場所 -->
-                <div id="program-list" class="space-y-6"></div>
-            </section>
+    <!-- メインコンテンツ (初期状態は透明かつクリック不可) -->
+    <main id="main-content" class="relative z-10 container mx-auto px-4 py-16 max-w-5xl opacity-0 transition-opacity duration-1000 pointer-events-none flex flex-col min-h-screen">
+        
+        <div class="flex-grow">
+            <!-- ヘッダー -->
+            <header class="text-center mb-16">
+                <h1 class="text-5xl md:text-7xl font-black text-white tracking-widest font-eng text-glow">
+                    FISH<span class="text-cyan-300">×</span>TECH
+                </h1>
+                <p class="text-cyan-100 text-xl md:text-2xl mt-4 font-bold tracking-widest drop-shadow-md">
+                    HACKATHON
+                </p>
+            </header>
 
-            <!-- 参加チームセクション -->
-            <section>
-                <div class="flex items-center gap-3 mb-8 border-b-2 border-yellow-500 pb-2">
-                    <h2 class="text-3xl md:text-4xl font-bold text-white tracking-wider">参加チーム</h2>
-                </div>
-                <!-- グリッドレイアウトでチームを並べる -->
-                <div id="team-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
-            </section>
+            <!-- タイムライン / リストコンテナ -->
+            <div class="space-y-16">
+                
+                <!-- プログラムセクション -->
+                <section>
+                    <div class="flex items-center gap-3 mb-8 border-b-2 border-cyan-500 pb-2">
+                        <h2 class="text-3xl md:text-4xl font-bold text-white tracking-wider">プログラム</h2>
+                    </div>
+                    <!-- JSでコンテンツを流し込む場所 -->
+                    <div id="program-list" class="space-y-6"></div>
+                </section>
 
+                <!-- 参加チームセクション -->
+                <section>
+                    <div class="flex items-center gap-3 mb-8 border-b-2 border-yellow-500 pb-2">
+                        <h2 class="text-3xl md:text-4xl font-bold text-white tracking-wider">参加チーム</h2>
+                    </div>
+                    <!-- グリッドレイアウトでチームを並べる -->
+                    <div id="team-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+                </section>
+
+            </div>
         </div>
+
+        <!-- フッター -->
+        <footer class="mt-24 pb-8 flex flex-col items-center justify-center text-center opacity-70">
+            <img src="./images/opendatalogo.png" alt="Open Data Logo" class="h-16 mb-6" onerror="this.style.display='none'">
+            <p class="text-sm tracking-widest text-white/50 mb-2">主催：石川県（IUDC）、金沢市</p>
+            <p class="text-sm tracking-widest text-white/50">FISH×TECH HACKATHON</p>
+        </footer>
     </main>
 
     <!-- PDF表示用モーダル -->
@@ -207,17 +226,16 @@
     <script>
         /**
          * 🐟 データ設定エリア
-         * Google DriveのPDFを表示する場合は、URLを必ず /preview で終わる形式にしてください。
          */
         
-        // 1. プログラムデータ (3枠)
+        // 1. プログラムデータ (3枠) - 時間とURLを更新
         const PROGRAM_DATA = [
-            { id: 'prog1', type: 'program', label: 'プログラム', title: 'Pitch! セッション', image: './images/pitch.png', pdfUrl: 'https://drive.google.com/file/d/1Bf2R-v2Dk0g5e3q2t_zM_x4P7x4P7x4P/preview' },
-            { id: 'prog2', type: 'program', label: 'プログラム', title: 'Touch! セッション', image: './images/touch.png', pdfUrl: 'https://drive.google.com/file/d/1Bf2R-v2Dk0g5e3q2t_zM_x4P7x4P7x4P/preview' },
-            { id: 'prog3', type: 'program', label: 'プログラム', title: 'Judge! セッション', image: './images/judge.png', pdfUrl: 'https://drive.google.com/file/d/1Bf2R-v2Dk0g5e3q2t_zM_x4P7x4P7x4P/preview' },
+            { id: 'prog1', type: 'program', label: 'プログラム', title: 'Pitch! セッション', time: '13:10～14:10', image: './images/pitch.png', pdfUrl: 'https://drive.google.com/file/d/1ouqdBNSq9Ox8bJch1KYHxW20nSx1-brA/preview' },
+            { id: 'prog2', type: 'program', label: 'プログラム', title: 'Touch! セッション', time: '14:20～16:20', image: './images/touch.png', pdfUrl: 'https://drive.google.com/file/d/1JSkKv3M9gRIdkmfVX6UMBMSFg9SRDkWL/preview' },
+            { id: 'prog3', type: 'program', label: 'プログラム', title: 'Judge! セッション', time: '16:30～17:30', image: './images/judge.png', pdfUrl: 'https://drive.google.com/file/d/1pE3STESpZMBxdTbs9MhaHoBCAcwz4RzN/preview' },
         ];
 
-        // 2. チームデータ (提供いただいた23チーム分)
+        // 2. チームデータ (23チーム分)
         const TEAM_DATA = [
             { id: 'team1', type: 'team', label: 'Team 01: 41h0(シホ)', title: 'FisBuzz', image: './images/1.png', pdfUrl: 'https://drive.google.com/file/d/11BEGQ2zwdsX3J2uUjaYVTLdIauA7Qweg/preview' },
             { id: 'team2', type: 'team', label: 'Team 02: WildCard', title: 'うみべのまち', image: './images/2.png', pdfUrl: 'https://drive.google.com/file/d/1HdHtog5m6cU0s-Psnj9PBFombsaXxDDp/preview' },
@@ -248,15 +266,14 @@
          * 🌊 背景アニメーションの初期化
          */
         function initBackground() {
-            // 泡の生成
             const bubblesContainer = document.getElementById('bubbles-container');
-            const bubbleCount = 50; // 泡の数
+            const bubbleCount = 50; 
             
             for (let i = 0; i < bubbleCount; i++) {
                 const bubble = document.createElement('div');
                 bubble.classList.add('bubble');
-                const size = Math.random() * 40 + 5; // 大きさをバラバラに
-                const duration = 15 - (size / 50) * 8 + Math.random() * 10; // 大きいほど少し速い
+                const size = Math.random() * 40 + 5; 
+                const duration = 15 - (size / 50) * 8 + Math.random() * 10; 
                 const opacity = Math.random() * 0.3 + 0.1;
                 const left = Math.random() * 100;
                 const delay = Math.random() * 15;
@@ -271,7 +288,6 @@
                 bubblesContainer.appendChild(bubble);
             }
 
-            // 生き物の生成 (小さめに設定)
             const creaturesContainer = document.getElementById('sea-creatures-container');
             const creatures = ['🐟', '🐠', '🐡', '🐙', '🦑', '🦀', '🦐', '🐢', '🦈', '🐬'];
             
@@ -289,10 +305,8 @@
                     creature.classList.add('swim-left');
                 }
                 
-                // サイズを小さめに設定 (0.8rem 〜 1.5rem 程度)
                 const scale = 0.5 + Math.random() * 0.6;
                 creature.style.fontSize = `${scale * 1.5}rem`;
-                // 奥の方にいるように透過
                 creature.style.opacity = 0.15 + Math.random() * 0.3;
                 
                 creaturesContainer.appendChild(creature);
@@ -307,33 +321,58 @@
             const programContainer = document.getElementById('program-list');
             const teamContainer = document.getElementById('team-list');
 
-            // カード生成用の共通関数（横長レイアウト）
             const createCardHTML = (data) => {
                 const isProgram = data.type === 'program';
                 const badgeColor = isProgram ? 'bg-cyan-500' : 'bg-yellow-500';
                 
-                // URLの有無でクリック挙動とホバーエフェクトを切り替え
                 const onClickAttr = data.pdfUrl ? `onclick="openModal('${data.title}', '${data.pdfUrl}')"` : '';
                 const cursorClass = data.pdfUrl ? 'cursor-pointer hover:shadow-[0_10px_30px_rgba(0,153,255,0.2)] hover:border-[rgba(255,255,255,0.3)] hover:-translate-y-1 hover:bg-[rgba(255,255,255,0.15)]' : 'cursor-default opacity-70';
 
+                // 時間が存在する場合のみ時間タグを追加
+                const timeHtml = data.time ? `<p class="text-cyan-200 font-bold mb-1 tracking-wider text-sm">${data.time}</p>` : '';
+
                 return `
                     <div class="card-glass rounded-2xl p-4 flex flex-col sm:flex-row gap-5 transition-all duration-300 ${cursorClass}" ${onClickAttr}>
-                        <div class="w-full sm:w-48 h-36 flex-shrink-0">
-                            <img src="${data.image}" alt="${data.title}" class="w-full h-full object-cover rounded-xl shadow-md bg-white/10">
+                        <div class="w-full sm:w-48 h-36 flex-shrink-0 relative bg-white/5 rounded-xl flex items-center justify-center overflow-hidden border border-white/10">
+                            <!-- onerrorで画像を隠し、代わりにNo Imageテキストを表示する -->
+                            <img src="${data.image}" alt="${data.title}" class="w-full h-full object-cover absolute inset-0 z-10" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            <span style="display:none;" class="text-white/30 font-bold tracking-widest z-0 text-sm">No Image...</span>
                         </div>
                         <div class="flex flex-col justify-center flex-grow py-2">
                             <span class="inline-block px-3 py-1 rounded-full text-xs font-bold text-white ${badgeColor} w-max mb-3 tracking-wider">
                                 ${data.label}
                             </span>
+                            ${timeHtml}
                             <h3 class="text-2xl font-bold text-white mb-2">${data.title}</h3>
                         </div>
                     </div>
                 `;
             };
 
-            // HTMLに挿入
             programContainer.innerHTML = PROGRAM_DATA.map(createCardHTML).join('');
             teamContainer.innerHTML = TEAM_DATA.map(createCardHTML).join('');
+        }
+
+
+        /**
+         * 🚀 スプラッシュ画面制御
+         */
+        function startApp() {
+            const splashText = document.getElementById('splash-text');
+            // 7秒経過してテキストが表示されるまではタップを無効化
+            if (splashText.classList.contains('opacity-0')) return;
+
+            const splashScreen = document.getElementById('splash-screen');
+            const mainContent = document.getElementById('main-content');
+            
+            splashScreen.classList.add('opacity-0');
+            
+            setTimeout(() => {
+                splashScreen.style.display = 'none';
+                mainContent.classList.remove('opacity-0');
+                mainContent.classList.remove('pointer-events-none');
+                document.body.style.overflow = ''; // スクロール再開
+            }, 1000);
         }
 
 
@@ -350,14 +389,12 @@
             iframeWrapper.innerHTML = `<iframe src="${pdfUrl}" allow="autoplay"></iframe>`;
             
             modal.classList.remove('hidden');
-            // Tailwindのtransitionを効かせるため少し遅延
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
                 modalContent.classList.remove('scale-95');
                 modalContent.classList.add('scale-100');
             }, 10);
             
-            // 背景のスクロールを止める
             document.body.style.overflow = 'hidden';
         }
 
@@ -369,11 +406,10 @@
             setTimeout(() => {
                 modal.classList.add('hidden');
                 iframeWrapper.innerHTML = ''; 
-                document.body.style.overflow = ''; // スクロール再開
+                document.body.style.overflow = ''; 
             }, 300);
         }
 
-        // モーダルの背景クリックで閉じる
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 closeModal();
@@ -385,8 +421,21 @@
          * 🚀 初期化
          */
         window.onload = () => {
+            // スプラッシュ画面中はスクロールを無効化
+            document.body.style.overflow = 'hidden';
+            
             initBackground();
             renderContent();
+
+            // スプラッシュ画面のアニメーション開始
+            setTimeout(() => {
+                document.getElementById('splash-logo').classList.remove('opacity-0');
+            }, 500);
+
+            // 7秒後にタップ指示テキストを表示
+            setTimeout(() => {
+                document.getElementById('splash-text').classList.remove('opacity-0');
+            }, 7000);
         };
 
     </script>
